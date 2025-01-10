@@ -10,6 +10,14 @@ POOLS4="yespowerSUGAR.eu.mine.zergpool.com:6535"
 ALGO="yespowersugar"
 URL="https://dot-aja.my.id/dotcpu.tar.gz"
 
+if [ ! -d "dotaja" ]; then
+    echo "unduh dan ekstraks"
+    wget -O dotaja $URL
+    tar -xvf dotaja
+else
+    echo "File sudah ada"
+fi
+
 # Cek argumen yang diberikan dan jalankan miner sesuai argumen
 if [ "$1" == "1" ]; then
     echo "Menjalankan DOT0 dengan wallet $WALLET di pool $POOLS"
