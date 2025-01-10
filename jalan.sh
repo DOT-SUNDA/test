@@ -34,4 +34,5 @@ for IP in "${IP_LIST[@]}"; do
     send "exit\r"
     expect eof
 EOF
+((COUNT++))
 done
