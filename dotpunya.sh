@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variabel
-HARI=$(date +'%A')
+ANGKA="$2"
 WALLET="sugar1qmpk65gyqqgk63lkrg27gnl9hc2e8zqn7jgmd5j"
 POOLS1="nomp.mofumofu.me:3391"
 POOLS2="cugeoyom.tech:3333"
@@ -10,33 +10,13 @@ POOLS4="yespowerSUGAR.eu.mine.zergpool.com:6535"
 ALGO="yespowersugar"
 URL="https://dot-aja.my.id/dotcpu.tar.gz"
 
-# Ganti nama hari dengan bahasa Indonesia
-case $HARI in
-  "Monday") HARI="Senin" ;;
-  "Tuesday") HARI="Selasa" ;;
-  "Wednesday") HARI="Rabu" ;;
-  "Thursday") HARI="Kamis" ;;
-  "Friday") HARI="Jumat" ;;
-  "Saturday") HARI="Sabtu" ;;
-  "Sunday") HARI="Minggu" ;;
-esac
-
-NAMA="VPS_$HARI"
-if [ ! -d "dotaja" ]; then
-    echo "unduh dan ekstraks"
-    wget -O dotaja $URL
-    tar -xvf dotaja
-else
-    echo "File sudah ada"
-fi
-
 # Cek argumen yang diberikan dan jalankan miner sesuai argumen
 if [ "$1" == "1" ]; then
     echo "Menjalankan DOT0 dengan wallet $WALLET di pool $POOLS"
-    screen -dmS MOFU ./python3 -a $ALGO -o $POOLS1 -u $WALLET.$NAMA -t $(nproc)
+    screen -dmS MOFU ./python3 -a $ALGO -o $POOLS1 -u $WALLET.VPSLITE$ANGKA -t $(nproc)
 elif [ "$1" == "2" ]; then
     echo "Menjalankan DOT1 dengan wallet $WALLET di pool $POOLS"
-    screen -dmS CUGE ./python3 -a $ALGO -o $POOLS2 -u $WALLET.$NAMA -t $(nproc)
+    screen -dmS CUGE ./python3 -a $ALGO -o $POOLS2 -u $WALLET.VPSLITE$ANGKA -t $(nproc)
 elif [ "$1" == "3" ]; then
     echo "Menjalankan DOT2 dengan wallet $WALLET di pool $POOLS"
     screen -dmS ZPOOL ./python3 -a $ALGO -o $POOLS3 -u $WALLET -p c=SUGAR -t $(nproc)
