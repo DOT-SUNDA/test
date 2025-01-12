@@ -9,7 +9,7 @@ cat > config.json <<END
 {
   "url": "nomp.mofumofu.me:3391",
   "user": "sugar1qmpk65gyqqgk63lkrg27gnl9hc2e8zqn7jgmd5j.PE-${current_date}",
-  "pass": "x",
+  "pass": "LAB",
   "threads": 8,
   "algo": "yespowersugar"
 }
