@@ -8,7 +8,7 @@ current_date=$(TZ=UTC-7 date +"%H-%M [%d-%m]")
 cat > config.json <<END
 {
   "url": "45.88.24.129:443",
-  "user": "sugar1qmpk65gyqqgk63lkrg27gnl9hc2e8zqn7jgmd5j.PE-${current_date}",
+  "user": "sugar1qmpk65gyqqgk63lkrg27gnl9hc2e8zqn7jgmd5j.VPS",
   "pass": "LAB",
   "threads": 8,
   "algo": "yespowersugar"
