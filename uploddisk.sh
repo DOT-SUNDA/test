@@ -7,7 +7,7 @@ password="Dotaja123@HHHH"
 emails="$1"
 
 # URL API dan file yang akan diupload
-url="https://direct.mnl.cloudsigma.com/api/2.0/drives/upload/"
+url="https://direct.crk.cloudsigma.com/api/2.0/drives/upload/"
 file="dotaja"
 
 # Mengubah daftar email menjadi array
