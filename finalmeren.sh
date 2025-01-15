@@ -38,22 +38,18 @@ for email in "${email_array[@]}"; do
 
     # Menjalankan curl untuk mengupload file
     echo "Mengupload dengan akun $email..."
-    upload_response=$(curl --request POST --user "$email:$password" \
+    drive_id=$(curl --silent --request POST --user "$email:$password" \
                             --header 'Content-Type: application/octet-stream' \
                             --upload-file "$file" \
                             "$url_upload")
     
-    echo "Upload selesai untuk $email."
-
-    # Menyimpan output dari upload (misalnya ID drive) untuk digunakan dalam pembuatan server
-    drive_id=$(echo "$upload_response" | jq -r '.id')
+    echo "Upload selesai. Drive ID: $drive_id"
     
     if [ -z "$drive_id" ]; then
         echo "Gagal mendapatkan ID drive dari upload untuk $email!"
         continue
     fi
 
-    # Membuat server menggunakan drive ID yang didapat dari upload
     echo "Membuat server untuk akun $email..."
     server_response=$(curl -X POST "$url_server" \
                            -H "Content-Type: application/json" \
@@ -71,7 +67,7 @@ for email in "${email_array[@]}"; do
                                                "dev_channel": "0:0",
                                                "device": "ide",
                                                "drive": "'"$drive_id"'",
-                                               "size": 50
+                                               "size": 10
                                            }
                                        ],
                                        "nics": [
