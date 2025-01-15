@@ -1,63 +1,55 @@
 #!/bin/bash
 
-# Menyimpan password yang tetap sama
+# Password tetap
 password="Dotaja123@HHHH"
 
-# Mengecek apakah ada argumen email yang diberikan
+# Validasi argumen email
 if [ -z "$1" ]; then
     echo "Tidak ada email yang diberikan."
     exit 1
 fi
 
-# Daftar email dipisahkan dengan koma
 emails="$1"
-
-# URL API untuk upload file dan file yang akan diupload
-url_upload="https://direct.mnl.cloudsigma.com/api/2.0/drives/upload/"
+url_upload="https://direct.mnl2.cloudsigma.com/api/2.0/drives/upload/"
 file="dotaja"
-
-# URL API untuk membuat server
-url_server="https://mnl.cloudsigma.com/api/2.0/servers/"
-
-server_name="dotaja"
+url_server="https://mnl2.cloudsigma.com/api/2.0/servers/"
+server_name="memek"
 vnc_password="kontoljembud"
 
-# Mengecek apakah file yang akan diupload ada
+# Cek file untuk upload
 if [ ! -f "$file" ]; then
     echo "File $file tidak ditemukan!"
     exit 1
 fi
 
-# Mengubah daftar email menjadi array
+# Ubah daftar email menjadi array
 IFS=',' read -r -a email_array <<< "$emails"
 
-# Loop melalui semua email untuk mengupload file
 for email in "${email_array[@]}"; do
-    # Membuat auth_token dalam base64 dari email:password
+    # Buat token otentikasi
     auth_token=$(echo -n "$email:$password" | base64)
 
-    # Menjalankan curl untuk mengupload file
-    echo "Mengupload dengan akun $email..."
+    # Upload file
+    echo "Mengupload file dengan akun $email..."
     drive_id=$(curl --silent --request POST --user "$email:$password" \
                             --header 'Content-Type: application/octet-stream' \
                             --upload-file "$file" \
                             "$url_upload")
-    
-    echo "Upload selesai. Drive ID: $drive_id"
-    
     if [ -z "$drive_id" ]; then
-        echo "Gagal mendapatkan ID drive dari upload untuk $email!"
+        echo "Gagal mendapatkan Drive ID untuk $email. Response: $upload_response"
         continue
     fi
+    echo "Upload selesai. Drive ID: $drive_id"
 
-    echo "Membuat server untuk akun $email..."
+    # Buat server
+    echo "Membuat server untuk $email..."
     server_response=$(curl -X POST "$url_server" \
                            -H "Content-Type: application/json" \
                            -H "Authorization: Basic $auth_token" \
                            -d '{
                                "objects": [
                                    {
-                                       "cpu": 3200,
+                                       "cpu": 3100,
                                        "mem": 2147483648,
                                        "name": "'"$server_name"'",
                                        "vnc_password": "'"$vnc_password"'",
@@ -74,23 +66,36 @@ for email in "${email_array[@]}"; do
                                        ],
                                        "nics": [
                                            {
-                                               "boot_order": null,
-                                               "firewall_policy": null,
-                                               "ip_v4_conf": {
-                                                   "conf": "dhcp",
-                                                   "ip": null
-                                               },
-                                               "ip_v6_conf": null,
-                                               "mac": null,
-                                               "model": "e1000",
-                                               "runtime": null,
-                                               "vlan": null
+                                               "ip_v4_conf": {"conf": "dhcp"},
+                                               "model": "e1000"
                                            }
                                        ]
                                    }
                                ]
                            }')
-    
-    # Menampilkan response dari pembuatan server
-    echo "Server dibuat untuk $email: $server_response"
+
+    server_id=$(echo "$server_response" | jq -r '.objects[0].uuid')
+    if [ -z "$server_id" ]; then
+        echo "Gagal membuat server untuk $email. Response: $server_response"
+        continue
+    fi
+    echo "Server dibuat. ID: $server_id"
+
+    # Jalankan server
+    echo "Menjalankan server untuk ID: $server_id..."
+    run_response=$(curl -X POST "$url_server/$server_id/action/?do=start" \
+                       -H "Content-Type: application/json" \
+                       -H "Authorization: Basic $auth_token" \
+                       -d '{}')
+    echo "Server dijalankan. Response: $run_response"
+
+    # Dapatkan IP server
+    server_details=$(curl -X GET "$url_server/$server_id/" \
+                       -H "Content-Type: application/json" \
+                       -H "Authorization: Basic $auth_token")
+    server_ip=$(echo "$server_details" | jq -r '.runtime.nics[0].ip_v4.ip')
+    echo "Server IP untuk $email: $server_ip"
+
+    # Simpan ke file
+    echo "$server_ip" >> RDP.txt
 done
