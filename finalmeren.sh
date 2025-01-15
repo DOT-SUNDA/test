@@ -93,7 +93,7 @@ for email in "${email_array[@]}"; do
     server_details=$(curl -X GET "$url_server/$server_id/" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token")
-    server_ip=$(echo "$server_details" | jq -r '.runtime.nics[0].ip_v4.ip')
+    server_ip=$(echo "$server_details" | jq -r '.runtime.nics[0].ip_v4.uuid')
     echo "Server IP untuk $email: $server_ip"
 
     # Simpan ke file
