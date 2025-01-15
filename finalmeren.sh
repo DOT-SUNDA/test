@@ -61,6 +61,8 @@ for email in "${email_array[@]}"; do
                                        "mem": 2147483648,
                                        "name": "'"$server_name"'",
                                        "vnc_password": "'"$vnc_password"'",
+                                       "hv_relaxed": true,
+                                       "hv_tsc": true,
                                        "drives": [
                                            {
                                                "boot_order": 1,
