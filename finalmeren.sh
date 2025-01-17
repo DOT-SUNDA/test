@@ -90,12 +90,12 @@ for email in "${email_array[@]}"; do
     echo "Server dijalankan. Response: $run_response"
 
     # Dapatkan IP server
-    server_ip=$(curl -s -X GET "$url_server/$server_id/" \
+    server_ip=$(curl -X GET "$url_server/$server_id/" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
     
     echo "Server IP untuk $email: $server_ip"
-
+    
     # Simpan ke file
     echo "$server_ip" >> RDP.txt
 done
