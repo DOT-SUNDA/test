@@ -94,7 +94,7 @@ for email in "${email_array[@]}"; do
     # Dapatkan IP server
     server_response=$(curl -X GET "$url_server/$server_id/" \
                        -H "Content-Type: application/json" \
-                       -H "Authorization: Basic $auth_token"
+                       -H "Authorization: Basic $auth_token")
                        
     server_ip=$(echo "$server_response" | jq -r '.runtime.nics[0].ip_v4.uuid')
     echo "Server IP untuk $email: $server_ip"
