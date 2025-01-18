@@ -89,6 +89,8 @@ for email in "${email_array[@]}"; do
                        -d '{}')
     echo "Server dijalankan. Response: $run_response"
 
+    sleep 30
+    
     # Dapatkan IP server
     server_ip=$(curl -X GET "$url_server/$server_id/" \
                        -H "Content-Type: application/json" \
