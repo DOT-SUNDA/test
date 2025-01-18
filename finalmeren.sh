@@ -103,5 +103,7 @@ ip=$(curl -X GET "$url_server/$server_id/" \
 echo "$ip" >> IPrdp.txt
 # Menampilkan IP
 echo "IP Address: $ip"
-
 done
+
+# Keluar setelah selesai
+exit
