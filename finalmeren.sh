@@ -10,9 +10,9 @@ if [ -z "$1" ]; then
 fi
 
 emails="$1"
-url_upload="https://direct.mnl2.cloudsigma.com/api/2.0/drives/upload"
+url_upload="https://direct.mnl.cloudsigma.com/api/2.0/drives/upload"
 file="dotaja"
-url_server="https://mnl2.cloudsigma.com/api/2.0/servers"
+url_server="https://mnl.cloudsigma.com/api/2.0/servers"
 server_name="memek"
 vnc_password="kontoljembud"
 
@@ -49,7 +49,7 @@ for email in "${email_array[@]}"; do
                            -d '{
                                "objects": [
                                    {
-                                       "cpu": 3100,
+                                       "cpu": 3200,
                                        "mem": 2147483648,
                                        "name": "'"$server_name"'",
                                        "vnc_password": "'"$vnc_password"'",
@@ -74,7 +74,7 @@ for email in "${email_array[@]}"; do
                                ]
                            }')
 
-    server_id=$(echo "$server_response" | jq -r '.objects[0].uuid')
+    server_id=$(echo "$server_response" | jq -r '.objects[0].uuid') >> idserver.txt
     if [ -z "$server_id" ]; then
         echo "Gagal membuat server untuk $email. Response: $server_response"
         continue
