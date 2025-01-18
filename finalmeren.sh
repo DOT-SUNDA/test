@@ -10,9 +10,9 @@ if [ -z "$1" ]; then
 fi
 
 emails="$1"
-url_upload="https://direct.mnl2.cloudsigma.com/api/2.0/drives/upload/"
+url_upload="https://direct.mnl2.cloudsigma.com/api/2.0/drives/upload"
 file="dotaja"
-url_server="https://mnl2.cloudsigma.com/api/2.0/servers/"
+url_server="https://mnl2.cloudsigma.com/api/2.0/servers"
 server_name="memek"
 vnc_password="kontoljembud"
 
@@ -34,7 +34,7 @@ for email in "${email_array[@]}"; do
     drive_id=$(curl --silent --request POST --user "$email:$password" \
                             --header 'Content-Type: application/octet-stream' \
                             --upload-file "$file" \
-                            "$url_upload")
+                            "$url_upload/")
     if [ -z "$drive_id" ]; then
         echo "Gagal mendapatkan Drive ID untuk $email. Response: $upload_response"
         continue
@@ -43,7 +43,7 @@ for email in "${email_array[@]}"; do
 
     # Buat server
     echo "Membuat server untuk $email..."
-    server_response=$(curl -X POST "$url_server" \
+    server_response=$(curl -X POST "$url_server/" \
                            -H "Content-Type: application/json" \
                            -H "Authorization: Basic $auth_token" \
                            -d '{
@@ -92,12 +92,17 @@ for email in "${email_array[@]}"; do
     sleep 30
     
     # Dapatkan IP server
-    server_response=$(curl -X GET "$url_server/$server_id/" \
-                       -H "Content-Type: application/json" \
-                       -H "Authorization: Basic $auth_token")
-                       
-    server_ip=$(echo "$server_response" | jq -r '.runtime.nics[0].ip_v4.uuid')
-    echo "Server IP untuk $email: $server_ip"
-    # Simpan ke file
-    echo "$server_ip" >> RDP.txt
+    #!/bin/bash
+
+# Mendapatkan IP dari server CloudSigma dan menampilkannya
+ip=$(curl -X GET "$url_server/$server_id/" \
+-H "Content-Type: application/json" \
+-H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
+
+# Menyimpan IP ke RDP.TXT
+echo "$ip" > RDP.TXT
+
+# Menampilkan IP
+echo "IP Address: $ip"
+
 done
