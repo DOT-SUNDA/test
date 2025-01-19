@@ -1,12 +1,9 @@
 #!/bin/bash
-
+svr="mnl"
+wcpu="3200"
 # Password tetap
 password="Dotaja123@HHHH"
 emails="$1"
-svr1="mnl"
-svr2="crj"
-svr3="mnl2"
-svr4="zrh"
 file="dotaja"
 server_name="memek"
 vnc_password="kontoljembud"
@@ -41,7 +38,7 @@ for email in "${email_array[@]}"; do
     drive_id=$(curl --silent --request POST --user "$email:$password" \
                             --header 'Content-Type: application/octet-stream' \
                             --upload-file "$file" \
-                            "https://direct.$svr1.cloudsigma.com/api/2.0/drives/upload/")
+                            "https://direct.$svr.cloudsigma.com/api/2.0/drives/upload/")
     if [ -z "$drive_id" ]; then
         echo "Gagal mendapatkan Drive ID untuk $email. Response: $drive_id"
         continue
@@ -50,7 +47,7 @@ for email in "${email_array[@]}"; do
 
     # Buat server
     echo "Membuat server untuk $email..."
-    server_response=$(curl -X POST "https://$svr1.cloudsigma.com/api/2.0/servers/" \
+    server_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
                            -H "Content-Type: application/json" \
                            -H "Authorization: Basic $auth_token" \
                            -d '{
@@ -90,7 +87,7 @@ for email in "${email_array[@]}"; do
 
     # Jalankan server
     echo "Menjalankan server untuk ID: $server_id..."
-    run_response=$(curl -X POST "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
+    run_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
                        -d '{}')
