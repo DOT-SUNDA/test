@@ -2,19 +2,26 @@
 
 # Password tetap
 password="Dotaja123@HHHH"
+emails="$1"
+svr1="mnl"
+svr2="crj"
+svr3="mnl2"
+svr4="zrh"
+file="dotaja"
+server_name="memek"
+vnc_password="kontoljembud"
+
+
+if ! command -v jq &> /dev/null; then
+    echo "jq tidak ditemukan, pastikan jq terpasang."
+    exit 1
+fi
 
 # Validasi argumen email
 if [ -z "$1" ]; then
     echo "Tidak ada email yang diberikan."
     exit 1
 fi
-
-emails="$1"
-url_upload="https://direct.mnl.cloudsigma.com/api/2.0/drives/upload"
-file="dotaja"
-url_server="https://mnl.cloudsigma.com/api/2.0/servers"
-server_name="memek"
-vnc_password="kontoljembud"
 
 # Cek file untuk upload
 if [ ! -f "$file" ]; then
@@ -34,16 +41,16 @@ for email in "${email_array[@]}"; do
     drive_id=$(curl --silent --request POST --user "$email:$password" \
                             --header 'Content-Type: application/octet-stream' \
                             --upload-file "$file" \
-                            "$url_upload/")
+                            "https://direct.$svr1.cloudsigma.com/api/2.0/drives/upload/")
     if [ -z "$drive_id" ]; then
-        echo "Gagal mendapatkan Drive ID untuk $email. Response: $upload_response"
+        echo "Gagal mendapatkan Drive ID untuk $email. Response: $drive_id"
         continue
     fi
     echo "Upload selesai. Drive ID: $drive_id"
 
     # Buat server
     echo "Membuat server untuk $email..."
-    server_response=$(curl -X POST "$url_server/" \
+    server_response=$(curl -X POST "https://$svr1.cloudsigma.com/api/2.0/servers/" \
                            -H "Content-Type: application/json" \
                            -H "Authorization: Basic $auth_token" \
                            -d '{
@@ -83,7 +90,7 @@ for email in "${email_array[@]}"; do
 
     # Jalankan server
     echo "Menjalankan server untuk ID: $server_id..."
-    run_response=$(curl -X POST "$url_server/$server_id/action/?do=start" \
+    run_response=$(curl -X POST "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
                        -d '{}')
@@ -92,17 +99,14 @@ for email in "${email_array[@]}"; do
     sleep 30
     
     # Dapatkan IP server
-    #!/bin/bash
+    ip=$(curl -X GET "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
 
-# Mendapatkan IP dari server CloudSigma dan menampilkannya
-ip=$(curl -X GET "$url_server/$server_id/" \
--H "Content-Type: application/json" \
--H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
-
-# Menyimpan IP ke RDP.TXT
-echo "$ip" >> IPrdp.txt
-# Menampilkan IP
-echo "IP Address: $ip"
+    # Menyimpan IP ke RDP.TXT
+    echo "$ip" >> IPrdp.txt
+    # Menampilkan IP
+    echo "IP Address: $ip"
 done
 
 # Keluar setelah selesai
