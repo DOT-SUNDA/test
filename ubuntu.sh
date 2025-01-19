@@ -7,24 +7,6 @@ emails="vzb64vsm@gmailo.net"
 server_name="memek"
 vnc_password="kontoljembud"
 
-
-if ! command -v jq &> /dev/null; then
-    echo "jq tidak ditemukan, pastikan jq terpasang."
-    exit 1
-fi
-
-# Validasi argumen email
-if [ -z "$1" ]; then
-    echo "Tidak ada email yang diberikan."
-    exit 1
-fi
-
-# Cek file untuk upload
-if [ ! -f "$file" ]; then
-    echo "File $file tidak ditemukan!"
-    exit 1
-fi
-
 # Ubah daftar email menjadi array
 IFS=',' read -r -a email_array <<< "$emails"
 
