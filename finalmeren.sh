@@ -1,5 +1,5 @@
 #!/bin/bash
-svr="mnl"
+svr="$0"
 wcpu="3200"
 # Password tetap
 password="Dotaja123@HHHH"
@@ -101,7 +101,7 @@ for email in "${email_array[@]}"; do
     -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
 
     # Menyimpan IP ke RDP.TXT
-    echo "$ip" >> IPrdp.txt
+    echo "$ip" >> rdp.txt
     # Menampilkan IP
     echo "IP Address: $ip"
 done
