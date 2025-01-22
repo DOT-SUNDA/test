@@ -14,7 +14,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Validasi argumen email
-if [ -z "$1" ]; then
+if [ -z "$0" ]; then
     echo "Tidak ada email yang diberikan."
     exit 1
 fi
