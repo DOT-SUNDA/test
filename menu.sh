@@ -35,21 +35,21 @@ get_os_info() {
 # Fungsi untuk memilih server
 select_server() {
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;36mPilih Server untuk RDP:\033[0m"
-    echo -e "\033[1;36m1. Server 1 (svr1)\033[0m"
-    echo -e "\033[1;36m2. Server 2 (svr2)\033[0m"
-    echo -e "\033[1;36m3. Server 3 (svr3)\033[0m"
-    echo -e "\033[1;36m4. Server 4 (svr4)\033[0m"
-    echo -e "\033[1;36m5. Server 5 (svr5)\033[0m"
+    echo -e "\033[1;36mPilih Server CLOUDSIGMA:\033[0m"
+    echo -e "\033[1;36m1. Server (ZRH)\033[0m"
+    echo -e "\033[1;36m2. Server (CAI)\033[0m"
+    echo -e "\033[1;36m3. Server (CRK)\033[0m"
+    echo -e "\033[1;36m4. Server (MNL)\033[0m"
+    echo -e "\033[1;36m5. Server (MNL2)\033[0m"
     echo -e "\033[1;32m=============================\033[0m"
     read -p "Pilih Server (1-5): " server_choice
 
     case $server_choice in
-        1) SERVER="svr1" ;;
-        2) SERVER="svr2" ;;
-        3) SERVER="svr3" ;;
-        4) SERVER="svr4" ;;
-        5) SERVER="svr5" ;;
+        1) SERVER="zrh" ;;
+        2) SERVER="cai" ;;
+        3) SERVER="crk" ;;
+        4) SERVER="mnl" ;;
+        5) SERVER="mnl2" ;;
         *)
             print_error "Pilihan tidak valid! Silakan pilih angka antara 1-5."
             select_server
@@ -68,13 +68,13 @@ while true; do
     echo -e "\033[1;32m=============================\033[0m"
     echo -e "\033[1;32m    MENU AUTO CREATE RDP     \033[0m"
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;37mOS       : \033[1;34m$OS_INFO\033[0m"
-    echo -e "\033[1;37mScreen   : \033[1;34m$SCREEN_STATUS\033[0m"
-    echo -e "\033[1;37mWaktu    : \033[1;34m$(date)\033[0m"
+    echo -e "\033[1;37mOS     : \033[1;34m$OS_INFO\033[0m"
+    echo -e "\033[1;37mScreen : \033[1;34m$SCREEN_STATUS\033[0m"
+    echo -e "\033[1;37mWaktu  : \033[1;34m$(date)\033[0m"
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;36m1. Buat RDP Baru      \033[0m"
-    echo -e "\033[1;36m2. Lihat Proses RDP   \033[0m"
-    echo -e "\033[1;36m3. Hentikan Semua RDP \033[0m"
+    echo -e "\033[1;36m1. Buat Baru      \033[0m"
+    echo -e "\033[1;36m2. Lihat Proses   \033[0m"
+    echo -e "\033[1;36m3. Hentikan Proses \033[0m"
     echo -e "\033[1;36m4. Exit               \033[0m"
     echo -e "\033[1;32m=============================\033[0m"
     
@@ -84,16 +84,17 @@ while true; do
         1)
             clear
             select_server
-            print_message "Masukkan daftar email (pisahkan dengan koma):"
+            print_message "Masukkan email (pisahkan dengan koma):"
             read -p "Emails: " emails
             print_message "Menjalankan proses pembuatan RDP di $SERVER..."
-            screen -dmS RDP_CREATION bash -c "$(wget -qO- $URLRDP/auto.sh)" "$emails" "$SERVER"
-            print_message "Proses RDP berjalan di background pada server $SERVER. Gunakan opsi 2 untuk melihat detail."
+            screen -dmS PROP bash -c "$(wget -qO- $URLRDP/ubuntu.sh)" "$emails" "$SERVER"
+            print_message "Proses berjalan di background pada"
+            print_message "Gunakan opsi 2 untuk melihat detail."
             ;;
         2)
             clear
-            if screen -list | grep -q "RDP_CREATION"; then
-                screen -r RDP_CREATION
+            if screen -list | grep -q "PROP"; then
+                screen -r PROP
             else
                 print_error "Tidak ada proses RDP yang aktif."
             fi
@@ -101,7 +102,7 @@ while true; do
         3)
             clear
             if screen -list | grep -q "RDP_CREATION"; then
-                screen -S RDP_CREATION -X quit
+                screen -S PROP -X quit
                 print_message "Semua proses RDP dihentikan."
             else
                 print_error "Tidak ada proses RDP yang aktif."
