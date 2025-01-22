@@ -35,7 +35,8 @@ get_os_info() {
 # Fungsi untuk memilih server
 select_server() {
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;36mPilih Server CLOUDSIGMA:\033[0m"
+    echo -e "\033[1;36mPILIH SERVER CLOUDSIGMA:\033[0m"
+    echo -e "\033[1;32m=============================\033[0m"
     echo -e "\033[1;36m1. Server (ZRH)\033[0m"
     echo -e "\033[1;36m2. Server (CAI)\033[0m"
     echo -e "\033[1;36m3. Server (CRK)\033[0m"
@@ -66,16 +67,17 @@ while true; do
     # Tampilan header
     clear
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;32m    MENU AUTO CREATE RDP     \033[0m"
+    echo -e "\033[1;32m  MENU AUTO CREATE DOT AJA   \033[0m"
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;37mOS     : \033[1;34m$OS_INFO\033[0m"
-    echo -e "\033[1;37mScreen : \033[1;34m$SCREEN_STATUS\033[0m"
-    echo -e "\033[1;37mWaktu  : \033[1;34m$(date)\033[0m"
+    echo -e "\033[1;37mOS : \033[1;34m$OS_INFO\033[0m"
+    echo -e "\033[1;37mPROSES : \033[1;34m$SCREEN_STATUS\033[0m"
+    echo -e "\033[1;37mWAKTU : \033[1;34m$(date)\033[0m"
     echo -e "\033[1;32m=============================\033[0m"
-    echo -e "\033[1;36m1. Buat Baru      \033[0m"
-    echo -e "\033[1;36m2. Lihat Proses   \033[0m"
+    echo -e "\033[1;36m1. Buat Baru       \033[0m"
+    echo -e "\033[1;36m2. Lihat Proses    \033[0m"
     echo -e "\033[1;36m3. Hentikan Proses \033[0m"
-    echo -e "\033[1;36m4. Exit               \033[0m"
+    echo -e "\033[1;36m4. Cek Daftar IP   \033[0m"
+    echo -e "\033[1;36m5. Exit            \033[0m"
     echo -e "\033[1;32m=============================\033[0m"
     
     # Pilihan menu dengan efek input
@@ -87,7 +89,7 @@ while true; do
             print_message "Masukkan email (pisahkan dengan koma):"
             read -p "Emails: " emails
             print_message "Menjalankan proses pembuatan RDP di $SERVER..."
-            screen -dmS PROP bash -c "$(wget -qO- $URLRDP/ubuntu.sh)" "$emails" "$SERVER"
+            screen -dmS PROP bash -c "$(wget -qO- $URLRDP/ubuntu.sh)" "$SERVER" "$emails"
             print_message "Proses berjalan di background pada"
             print_message "Gunakan opsi 2 untuk melihat detail."
             ;;
@@ -109,6 +111,15 @@ while true; do
             fi
             ;;
         4)
+            clear
+            if [ -f "rdp.txt" ]; then
+                print_message "Daftar Ip Rdp:"
+                cat rdp.txt
+            else
+                print_error "Daftar Ip Rdp tidak ditemukan."
+            fi
+            ;;
+        5)
             clear
             echo -e "\033[1;31mKeluar...\033[0m"
             exit 0
