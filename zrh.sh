@@ -95,7 +95,7 @@ for email in "${email_array[@]}"; do
     sleep 30
     
     # Dapatkan IP server
-    ip=$(curl -X GET "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/" \
+    ip=$(curl -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
     -H "Content-Type: application/json" \
     -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
 
