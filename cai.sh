@@ -14,7 +14,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Validasi argumen email
-if [ -z "$1" ]; then
+if [ -z "$0" ]; then
     echo "Tidak ada email yang diberikan."
     exit 1
 fi
@@ -83,26 +83,6 @@ for email in "${email_array[@]}"; do
         continue
     fi
     echo "Server dibuat. ID: $server_id"
-
-    # Jalankan server
-    echo "Menjalankan server untuk ID: $server_id..."
-    run_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
-                       -H "Content-Type: application/json" \
-                       -H "Authorization: Basic $auth_token" \
-                       -d '{}')
-    echo "Server dijalankan. Response: $run_response"
-
-    sleep 30
-    
-    # Dapatkan IP server
-    ip=$(curl -X GET "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
-
-    # Menyimpan IP ke RDP.TXT
-    echo "$ip" >> rdp.txt
-    # Menampilkan IP
-    echo "IP Address: $ip"
 done
 
 # Keluar setelah selesai
