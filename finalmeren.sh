@@ -1,13 +1,10 @@
 #!/bin/bash
-svr="$0"
-wcpu="3200"
-# Password tetap
+svr="cai"
 password="Dotaja123@HHHH"
 emails="$1"
 file="dotaja"
 server_name="memek"
 vnc_password="kontoljembud"
-
 
 if ! command -v jq &> /dev/null; then
     echo "jq tidak ditemukan, pastikan jq terpasang."
@@ -45,6 +42,16 @@ for email in "${email_array[@]}"; do
     fi
     echo "Upload selesai. Drive ID: $drive_id"
 
+    # Resize disk
+    echo "Melakukan resize disk untuk Drive ID: $drive_id..."
+    resize_response=$(curl --silent --request POST "https://$svr.cloudsigma.com/api/2.0/drives/$drive_id/action/?do=resize" \
+                          -H "Content-Type: application/json" \
+                          -H "Authorization: Basic $auth_token" \
+                          -d '{
+                              "size": 21474836480
+                          }')
+    echo "Resize disk selesai. Response: $resize_response"
+
     # Buat server
     echo "Membuat server untuk $email..."
     server_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
@@ -64,8 +71,7 @@ for email in "${email_array[@]}"; do
                                                "boot_order": 1,
                                                "dev_channel": "0:0",
                                                "device": "ide",
-                                               "drive": "'"$drive_id"'",
-                                               "size": 10
+                                               "drive": "'"$drive_id"'"
                                            }
                                        ],
                                        "nics": [
@@ -96,7 +102,7 @@ for email in "${email_array[@]}"; do
     sleep 30
     
     # Dapatkan IP server
-    ip=$(curl -X GET "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/" \
+    ip=$(curl -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
     -H "Content-Type: application/json" \
     -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
 
