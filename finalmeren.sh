@@ -48,7 +48,9 @@ for email in "${email_array[@]}"; do
                           -H "Content-Type: application/json" \
                           -H "Authorization: Basic $auth_token" \
                           -d '{
-                              "size": 21474836480
+                              "media": "disk",
+                              "name": "kontol",
+                              "size": 53687091200
                           }')
     echo "Resize disk selesai. Response: $resize_response"
 
