@@ -1,141 +1,153 @@
 #!/bin/bash
 
-# Perbarui dan instal paket yang diperlukan
-echo "Memperbarui sistem dan menginstal paket yang diperlukan..."
-sudo apt update -y
-sudo apt upgrade -y
-sudo apt install -y apache2 php libapache2-mod-php php-cli curl jq
+# Pastikan script dijalankan dengan hak akses sudo
+if [ "$EUID" -ne 0 ]; then 
+  echo "Please run as root"
+  exit
+fi
 
-# Pindahkan file panel ke direktori default Apache (/var/www/html)
-echo "Memindahkan file panel ke /var/www/html..."
-sudo mkdir -p /var/www/html
-sudo chown -R $USER:$USER /var/www/html
-sudo chmod -R 755 /var/www/html
+# Update dan upgrade sistem
+echo "Updating and upgrading system..."
+apt update -y && apt upgrade -y
 
-# Membuat file login.php
-echo "Membuat file login.php..."
-cat <<EOF | sudo tee /var/www/html/login.php > /dev/null
-<?php
-session_start();
+# Install python3-venv jika belum ada
+echo "Installing python3-venv..."
+apt install -y python3-venv
 
-// Hardcode username dan password untuk demo
-\$admin_user = 'admin';
-\$admin_pass = 'password123';
+# Membuat direktori untuk proyek
+echo "Creating project directory..."
+mkdir -p ~/flask-api
+cd ~/flask-api
 
-if (isset(\$_POST['login'])) {
-    \$_username = \$_POST['username'];
-    \$_password = \$_POST['password'];
+# Membuat virtual environment
+echo "Creating virtual environment..."
+python3 -m venv venv
+source venv/bin/activate
 
-    if (\$_username === \$admin_user && \$_password === \$admin_pass) {
-        \$_SESSION['loggedin'] = true;
-        header("Location: panel.php");
-        exit;
-    } else {
-        \$error = "Username atau password salah!";
-    }
-}
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Panel</title>
-</head>
-<body>
-    <h1>Login</h1>
-    <form method="post" action="">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
+# Install Flask
+echo "Installing Flask..."
+pip install Flask
 
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
+# Membuat direktori untuk template
+echo "Creating templates directory..."
+mkdir templates
 
-        <input type="submit" name="login" value="Login">
-    </form>
-    <?php if (isset(\$error)) echo "<p style='color:red;'>\$error</p>"; ?>
-</body>
-</html>
+# Membuat file app.py
+echo "Creating app.py file..."
+cat > app.py << 'EOF'
+from flask import Flask, render_template, request, redirect, url_for
+import subprocess
+
+app = Flask(__name__)
+
+# Contoh email dan password yang valid
+VALID_EMAIL = "user@example.com"
+VALID_PASSWORD = "password123"
+
+@app.route('/')
+def index():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+
+    # Verifikasi email dan password
+    if email == VALID_EMAIL and password == VALID_PASSWORD:
+        return redirect(url_for('run_bash'))
+    else:
+        return "Invalid credentials, please try again", 401
+
+@app.route('/run-bash', methods=['GET', 'POST'])
+def run_bash():
+    if request.method == 'POST':
+        # Dapatkan argument dari form
+        arg = request.form.get('argument')
+
+        try:
+            # Menjalankan script bash dengan argument
+            result = subprocess.run(['/bin/bash', 'script.sh', arg], capture_output=True, text=True)
+            if result.returncode == 0:
+                # Menampilkan output bash di halaman
+                return render_template('bash_form.html', output=result.stdout)
+            else:
+                return render_template('bash_form.html', output="Error: " + result.stderr)
+        except Exception as e:
+            return render_template('bash_form.html', output="Error: " + str(e))
+
+    return render_template('bash_form.html')
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
 EOF
 
-# Membuat file panel.php
-echo "Membuat file panel.php..."
-cat <<EOF | sudo tee /var/www/html/panel.php > /dev/null
-<?php
-session_start();
-
-// Cek jika user belum login, arahkan ke halaman login
-if (!isset(\$_SESSION['loggedin'])) {
-    header("Location: login.php");
-    exit;
-}
-
-if (isset(\$_POST['run_script'])) {
-    // Ambil input email dan password dari form
-    \$email = escapeshellarg(\$_POST['email']);
-    \$password = escapeshellarg(\$_POST['password']);
-
-    // Jalankan skrip Bash dengan input email dan password
-    \$output = shell_exec("bash /var/www/html/your_script.sh \$email \$password 2>&1");
-}
-?>
+# Membuat file login.html
+echo "Creating login.html file..."
+cat > templates/login.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Management Panel</title>
+    <title>Login</title>
 </head>
 <body>
-    <h1>Panel Server</h1>
-    <form method="post" action="">
+    <h2>Login</h2>
+    <form action="{{ url_for('login') }}" method="post">
         <label for="email">Email:</label><br>
         <input type="email" id="email" name="email" required><br><br>
-
+        
         <label for="password">Password:</label><br>
         <input type="password" id="password" name="password" required><br><br>
-
-        <input type="submit" name="run_script" value="Run Script">
+        
+        <button type="submit">Login</button>
     </form>
-
-    <h2>Output:</h2>
-    <pre>
-        <?php
-        if (isset(\$output)) {
-            echo htmlspecialchars(\$output);
-        }
-        ?>
-    </pre>
-
-    <a href="login.php?logout=true">Logout</a>
 </body>
 </html>
 EOF
 
-# Membuat skrip Bash (your_script.sh)
-echo "Membuat skrip Bash (your_script.sh)..."
-cat <<EOF | sudo tee /var/www/html/your_script.sh > /dev/null
-#!/bin/bash
-# Ambil email dan password dari argumen
-email=\$1
-password=\$2
+# Membuat file bash_form.html
+echo "Creating bash_form.html file..."
+cat > templates/bash_form.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Bash Script</title>
+</head>
+<body>
+    <h2>Enter Argument for Bash Script</h2>
+    <form action="{{ url_for('run_bash') }}" method="post">
+        <label for="argument">Argument:</label><br>
+        <input type="text" id="argument" name="argument" required><br><br>
+        
+        <button type="submit">Run Script</button>
+    </form>
 
-echo "Menerima Email: \$email"
-echo "Menerima Password: \$password"
-echo "Skrip berhasil dijalankan!"
+    {% if output %}
+    <h3>Output:</h3>
+    <pre>{{ output }}</pre>
+    {% endif %}
+</body>
+</html>
 EOF
 
-# Mengatur hak akses skrip Bash
-echo "Mengatur hak akses skrip Bash..."
-sudo chmod +x /var/www/html/your_script.sh
+# Membuat script.sh
+echo "Creating script.sh file..."
+cat > script.sh << 'EOF'
+#!/bin/bash
+echo "Bash script running with argument: $1"
+EOF
 
-# Konfigurasi Apache untuk menggunakan /var/www/html
-echo "Memastikan Apache menggunakan /var/www/html..."
-sudo sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html|' /etc/apache2/sites-available/000-default.conf
+# Berikan izin eksekusi untuk script.sh
+chmod +x script.sh
 
-# Restart Apache agar konfigurasi diterapkan
-echo "Restart Apache untuk menerapkan perubahan..."
-sudo systemctl restart apache2
+# Informasi untuk mengganti path script.sh
+echo "Reminder: Please replace 'script.sh' in app.py with the actual path to your Bash script."
 
-# Selesai
-echo "Instalasi selesai! Panel dapat diakses melalui http://<ip-server-anda>"
+# Menyelesaikan instalasi dan setup
+echo "Setup complete! To run the Flask app, activate the virtual environment and start the server with:"
+echo "source venv/bin/activate"
+echo "python app.py"
