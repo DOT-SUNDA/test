@@ -14,7 +14,7 @@ for email in "${email_array[@]}"; do
     auth_token=$(echo -n "$email:$password" | base64)
 
     # Upload file
-    drive_id=$(curl -s -X POST POST "https:///$svr.cloudsigma.com/api/2.0/libdrives/29792cde-c093-4a6a-9d66-6849331ba0ff/action/?do=clone" \
+    drive_id=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/libdrives/29792cde-c093-4a6a-9d66-6849331ba0ff/action/?do=clone" \
                             -H "Content-Type: application/json" \
                             -H "Authorization: Basic $auth_token" \
                             -d '{}' | jq -r '.objects[0].uuid')
