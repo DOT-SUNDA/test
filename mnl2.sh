@@ -2,28 +2,9 @@
 svr="mnl2"
 # Password tetap
 password="Dotaja123@HHHH"
-emails="$0"
-file="dotaja"
+emails="dotaja@khayden.com"
 server_name="memek"
 vnc_password="kontoljembud"
-
-
-if ! command -v jq &> /dev/null; then
-    echo "jq tidak ditemukan, pastikan jq terpasang."
-    exit 1
-fi
-
-# Validasi argumen email
-if [ -z "$1" ]; then
-    echo "Tidak ada email yang diberikan."
-    exit 1
-fi
-
-# Cek file untuk upload
-if [ ! -f "$file" ]; then
-    echo "File $file tidak ditemukan!"
-    exit 1
-fi
 
 # Ubah daftar email menjadi array
 IFS=',' read -r -a email_array <<< "$emails"
@@ -33,16 +14,14 @@ for email in "${email_array[@]}"; do
     auth_token=$(echo -n "$email:$password" | base64)
 
     # Upload file
-    echo "Mengupload file ke server $svr dengan akun $email..."
-    drive_id=$(curl --silent --request POST --user "$email:$password" \
-                            --header 'Content-Type: application/octet-stream' \
-                            --upload-file "$file" \
-                            "https://direct.$svr.cloudsigma.com/api/2.0/drives/upload/")
+    drive_id=$(curl -s -X POST POST "https:///$svr.cloudsigma.com/api/2.0/libdrives/29792cde-c093-4a6a-9d66-6849331ba0ff/action/?do=clone" \
+                            -H "Content-Type: application/json" \
+                            -H "Authorization: Basic $auth_token" \
+                            -d '{}' | jq -r '.objects[0].uuid') > /dev/null 2>&1
     if [ -z "$drive_id" ]; then
-        echo "Gagal mendapatkan Drive ID untuk $email. Response: $drive_id"
+        echo "Gagal mendapatkan Drive ID untuk $email"
         continue
     fi
-    echo "Upload selesai. Drive ID: $drive_id"
 
     # Buat server
     echo "Membuat server untuk $email..."
@@ -52,7 +31,7 @@ for email in "${email_array[@]}"; do
                            -d '{
                                "objects": [
                                    {
-                                       "cpu": 3100,
+                                       "cpu": 3200,
                                        "mem": 2147483648,
                                        "name": "'"$server_name"'",
                                        "vnc_password": "'"$vnc_password"'",
@@ -75,32 +54,28 @@ for email in "${email_array[@]}"; do
                                        ]
                                    }
                                ]
-                           }')
+                           }') > /dev/null 2>&1
 
-    server_id=$(echo "$server_response" | jq -r '.objects[0].uuid') >> idserver.txt
+    server_id=$(echo "$server_response" | jq -r '.objects[0].uuid')
     if [ -z "$server_id" ]; then
-        echo "Gagal membuat server untuk $email. Response: $server_response"
+        echo "Gagal membuat server untuk $email."
         continue
-    fi
-    echo "Server dibuat. ID: $server_id"
+    fi 
 
     # Jalankan server
     echo "Menjalankan server untuk ID: $server_id..."
     run_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
-                       -d '{}')
-    echo "Server dijalankan. Response: $run_response"
+                       -d '{}') > /dev/null 2>&1
 
-    sleep 30
+    sleep 15
     
     # Dapatkan IP server
-    ip=$(curl -X GET "https://$svr1.cloudsigma.com/api/2.0/servers/$server_id/" \
+    ip=$(curl -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
     -H "Content-Type: application/json" \
-    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
-
-    # Menyimpan IP ke RDP.TXT
-    echo "$ip" >> rdp.txt
+    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid') 
+    
     # Menampilkan IP
     echo "IP Address: $ip"
 done
