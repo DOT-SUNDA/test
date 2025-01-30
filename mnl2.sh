@@ -6,6 +6,7 @@ emails="dotaja@khayden.com"
 server_name="memek"
 vnc_password="kontoljembud"
 
+meki=$(echo $emails | awk -F',' '{print $1}' | awk -F'@' '{print $1}')
 # Ubah daftar email menjadi array
 IFS=',' read -r -a email_array <<< "$emails"
 
@@ -14,18 +15,13 @@ for email in "${email_array[@]}"; do
     auth_token=$(echo -n "$email:$password" | base64)
 
     # Upload file
-    drive_id=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/libdrives/29792cde-c093-4a6a-9d66-6849331ba0ff/action/?do=clone" \
+    drive_id=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/libdrives/efbf37af-6dc3-4186-9dfe-a9ac14bafb91/action/?do=clone" \
                             -H "Content-Type: application/json" \
                             -H "Authorization: Basic $auth_token" \
                             -d '{}' | jq -r '.objects[0].uuid')
-    if [ -z "$drive_id" ]; then
-        echo "Gagal mendapatkan Drive ID untuk $email"
-        continue
-    fi
 
     # Buat server
-    echo "Membuat server untuk $email..."
-    server_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
+    server_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
                            -H "Content-Type: application/json" \
                            -H "Authorization: Basic $auth_token" \
                            -d '{
@@ -57,28 +53,27 @@ for email in "${email_array[@]}"; do
                            }')
 
     server_id=$(echo "$server_response" | jq -r '.objects[0].uuid')
-    if [ -z "$server_id" ]; then
-        echo "Gagal membuat server untuk $email."
-        continue
-    fi 
-
+    
     # Jalankan server
     echo "Menjalankan server untuk ID: $server_id..."
-    run_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
+    run_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
-                       -d '{}')
+                       -d '{}') > /dev/null 2>&1
 
-    sleep 15
+    sleep 10
     
     # Dapatkan IP server
-    ip=$(curl -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
+    ip=$(curl -s -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
     -H "Content-Type: application/json" \
-    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid') 
+    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid') >> ip-$meki.txt
     
-    # Menampilkan IP
-    echo "IP Address: $ip"
 done
 
-# Keluar setelah selesai
+echo "Vps Ubuntu 18 Lts Berhasil Di Buat"
+echo "User : cloudsigma"
+echo "Pass : Cloud2024"
+echo "IP LIST :"
+echo "cat ip-$meki.txt"
+rm ip-$meki.txt
 exit
