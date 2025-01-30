@@ -1,14 +1,16 @@
 #!/bin/bash
 svr="mnl2"
 # Password tetap
-password="Dotaja123@HHHH"
 emails="dotaja@khayden.com"
+password="Dotaja123@HHHH"
 server_name="memek"
 vnc_password="kontoljembud"
 
 meki=$(echo $emails | awk -F',' '{print $1}' | awk -F'@' '{print $1}')
 # Ubah daftar email menjadi array
 IFS=',' read -r -a email_array <<< "$emails"
+
+echo "sabar dan tunggu!!!"
 
 for email in "${email_array[@]}"; do
     # Buat token otentikasi
@@ -19,7 +21,14 @@ for email in "${email_array[@]}"; do
                             -H "Content-Type: application/json" \
                             -H "Authorization: Basic $auth_token" \
                             -d '{}' | jq -r '.objects[0].uuid')
-
+    resize_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/drives/$drive_id/action/?do=resize" \
+                          -H "Content-Type: application/json" \
+                          -H "Authorization: Basic $auth_token" \
+                          -d '{
+                              "media": "disk",
+                              "name": "kontol",
+                              "size": 53687091200
+                          }')
     # Buat server
     server_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
                            -H "Content-Type: application/json" \
@@ -55,7 +64,6 @@ for email in "${email_array[@]}"; do
     server_id=$(echo "$server_response" | jq -r '.objects[0].uuid')
     
     # Jalankan server
-    echo "Menjalankan server untuk ID: $server_id..."
     run_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
@@ -66,14 +74,20 @@ for email in "${email_array[@]}"; do
     # Dapatkan IP server
     ip=$(curl -s -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
     -H "Content-Type: application/json" \
-    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid') >> ip-$meki.txt
-    
+    -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
+    echo "$ip" >> ip-$meki.txt
 done
-
+clear
+echo "=========================================="
 echo "Vps Ubuntu 18 Lts Berhasil Di Buat"
+echo "Kami Tidak Menyimpan Informasi Apapun"
+echo "Semuanya Terhapus dengan sendirinya"
+echo "=========================================="
 echo "User : cloudsigma"
 echo "Pass : Cloud2024"
+echo "=========================================="
 echo "IP LIST :"
-echo "cat ip-$meki.txt"
+cat ip-$meki.txt
+echo "=========================================="
 rm ip-$meki.txt
 exit
