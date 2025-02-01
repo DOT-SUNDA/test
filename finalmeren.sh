@@ -32,7 +32,7 @@ for email in "${email_array[@]}"; do
 
     # Upload file
     echo "Mengupload file dengan akun $email..."
-    drive_id=$(curl --silent --request POST --user "$email:$password" \
+    drive_id=$(curl -s -X POST --user "$email:$password" \
                             --header 'Content-Type: application/octet-stream' \
                             --upload-file "$file" \
                             "https://direct.$svr.cloudsigma.com/api/2.0/drives/upload/")
@@ -44,7 +44,7 @@ for email in "${email_array[@]}"; do
 
     # Resize disk
     echo "Melakukan resize disk untuk Drive ID: $drive_id..."
-    resize_response=$(curl --silent --request POST "https://$svr.cloudsigma.com/api/2.0/drives/$drive_id/action/?do=resize" \
+    resize_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/drives/$drive_id/action/?do=resize" \
                           -H "Content-Type: application/json" \
                           -H "Authorization: Basic $auth_token" \
                           -d '{
@@ -56,7 +56,7 @@ for email in "${email_array[@]}"; do
 
     # Buat server
     echo "Membuat server untuk $email..."
-    server_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
+    server_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/" \
                            -H "Content-Type: application/json" \
                            -H "Authorization: Basic $auth_token" \
                            -d '{
@@ -72,14 +72,14 @@ for email in "${email_array[@]}"; do
                                            {
                                                "boot_order": 1,
                                                "dev_channel": "0:0",
-                                               "device": "ide",
+                                               "device": "virtio",
                                                "drive": "'"$drive_id"'"
                                            }
                                        ],
                                        "nics": [
                                            {
                                                "ip_v4_conf": {"conf": "dhcp"},
-                                               "model": "e1000"
+                                               "model": "virtio"
                                            }
                                        ]
                                    }
@@ -95,7 +95,7 @@ for email in "${email_array[@]}"; do
 
     # Jalankan server
     echo "Menjalankan server untuk ID: $server_id..."
-    run_response=$(curl -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
+    run_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
                        -d '{}')
