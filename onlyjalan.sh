@@ -14,28 +14,29 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Cek file idserver.txt
-if [ ! -f "idserver.txt" ]; then
-    echo "File idserver.txt tidak ditemukan!"
-    exit 1
-fi
-
 # Ubah daftar email menjadi array
 IFS=',' read -r -a email_array <<< "$emails"
 
-# Baca ID server dari file idserver.txt
-mapfile -t server_ids < idserver.txt
-
-# Loop melalui setiap email dan ID server
-for index in "${!email_array[@]}"; do
-    email="${email_array[$index]}"
-    server_id="${server_ids[$index]}"
-
+for email in "${email_array[@]}"; do
     # Buat token otentikasi
     auth_token=$(echo -n "$email:$password" | base64)
 
+    # Ambil daftar server yang ada
+    echo "Mengambil daftar server untuk akun $email..."
+    server_list=$(curl -s -X GET "https://$svr.cloudsigma.com/api/2.0/servers/" \
+                       -H "Content-Type: application/json" \
+                       -H "Authorization: Basic $auth_token")
+
+    # Ambil ID server pertama dari daftar
+    server_id=$(echo "$server_list" | jq -r '.objects[0].uuid')
+    if [ -z "$server_id" ] || [ "$server_id" == "null" ]; then
+        echo "Tidak ada server yang ditemukan untuk akun $email."
+        continue
+    fi
+    echo "Server ditemukan. ID: $server_id"
+
     # Jalankan server
-    echo "Menjalankan server untuk ID: $server_id dengan akun $email..."
+    echo "Menjalankan server untuk ID: $server_id..."
     run_response=$(curl -s -X POST "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/action/?do=start" \
                        -H "Content-Type: application/json" \
                        -H "Authorization: Basic $auth_token" \
@@ -50,10 +51,10 @@ for index in "${!email_array[@]}"; do
               -H "Authorization: Basic $auth_token" | jq -r '.runtime.nics[0].ip_v4.uuid')
 
     # Menyimpan IP ke RDP.TXT
-    echo "$ip" >> rdpbaru.txt
+    echo "$ip" >> barurdp.txt
     # Menampilkan IP
     echo "IP Address: $ip"
 done
-cat rdpbaru.txt
+cat barurdp.txt
 # Keluar setelah selesai
 exit
