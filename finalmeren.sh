@@ -1,5 +1,5 @@
 #!/bin/bash
-svr="cai"
+svr="mnl"
 password="Dotaja123@HHHH"
 emails="$1"
 file="dotaja"
@@ -50,7 +50,7 @@ for email in "${email_array[@]}"; do
                           -d '{
                               "media": "disk",
                               "name": "kontol",
-                              "size": 53687091200
+                              "size": 26843545600
                           }')
     echo "Resize disk selesai. Response: $resize_response"
 
@@ -101,7 +101,7 @@ for email in "${email_array[@]}"; do
                        -d '{}')
     echo "Server dijalankan. Response: $run_response"
 
-    sleep 30
+    sleep 20
     
     # Dapatkan IP server
     ip=$(curl -X GET "https://$svr.cloudsigma.com/api/2.0/servers/$server_id/" \
